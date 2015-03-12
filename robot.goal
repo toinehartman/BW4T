@@ -21,6 +21,19 @@ init module {
 		% Exercise 2.1a: insert rules for processing percepts that are sent only at the beginning of a session, 
 		%  and/or need to be initialized.
 		
+		%% Send-once percepts
+		% Insert the capacity of the robot gripper in the beliefs. Necessary to know how many
+		% blocks can be carried at once.
+		if bel( percept(gripperCapacity(N)) ) then insert( gripperCapacity(N) ).
+		% Insert the wanted sequence of block colors in the beliefs. Necessary to deliver in order later.
+		if bel( percept(sequence(Colors)) ) then insert( sequence(Colors) ).
+		
+		%% Initialization
+		% Initialize sequenceIndex a.k.a. progress of collecting blocks
+		if bel( percept(sequenceIndex(N)) ) then insert( sequenceIndex(N) ).
+		% Initialize list of held blocks
+		if bel( percept(holdingBlocks(Blocks)) ) then insert( holdingBlocks(Blocks) ).
+		
 	}	
 	actionspec {
 		% The goTo action makes the agent move to a place (location) in the BW4T environment.
@@ -61,6 +74,27 @@ event module {
 		forall bel( percept(not(in(Place))) ) do delete( in(Place) ).
 
 		% Exercise 2.1b: insert rules for handling percepts other than "sendonce" percepts.
+		
+		% Insert new capacity of the gripper
+		if bel( gripperCapacity(M), percept(gripperCapacity(N)) ) then delete( gripperCapacity(M) ) + insert( gripperCapacity(N) ).
+		% Insert new sequenceIndex a.k.a. the progress of collecting blocks
+		if bel( sequenceIndex(M), percept(sequenceIndex(N)) ) then delete( sequenceIndex(M) ) + insert( sequenceIndex(N) ).
+		% Insert list of holding blocks
+		if bel( holdingBlocks(Blocks), percept(holdingBlocks(NewBlocks)) ) then delete( holdingBlocks(Blocks) ) + insert( holdingBlocks(NewBlocks) ).
+		
+		forall bel( percept(holding(Block)) ) do insert( holding(Block) ).
+		forall bel( percept(not(holding(Block))) ) do delete( holding(Block) ).
+		
+		if bel( percept(atBlock(Block)) ) then insert( atBlock(Block) ).
+		if bel( percept(not(atBlock(Block))) ) then delete( atBlock(Block) ).
+		
+		% Constantly update which rooms are occupied
+		forall bel( percept(occupied(Room)) ) do insert( occupied(Room) ).
+		forall bel( percept(not(occupied(Room))) ) do delete( occupied(Room) ).
+		
+		% Insert knowledge about color of specific blocks when agent sees them
+		forall bel( percept(color(Block, Color)) ) do insert( color(Block, Color) ).
+		
 		
 		% Exercise 2.5b: insert code for goal management that allows an agent to systematically search for blocks. (if needed)
 		
