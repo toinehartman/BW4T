@@ -4,7 +4,8 @@ init module {
 		room(PlaceID) :- zone(_,PlaceID,_,_,Neighbours), length(Neighbours,1).
 		
 		% Exercise 2.2: insert a definition of the predicate "nextColorInSeq(Color)".
-
+		nextColorInSeq(Color) :- sequenceIndex(Index), sequence(Colors), nth0(Index, Colors, Color).
+		
 		% Exercise 2.5 + 2.6: (optional) if needed, insert additional knowledge here.
 		
 	}
