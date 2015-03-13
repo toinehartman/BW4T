@@ -24,10 +24,6 @@ init module {
 		
 		%% Send-once percepts
 		
-		% Insert the capacity of the robot gripper in the beliefs. Necessary to know how many
-		% blocks can be carried at once.
-		if bel( percept(gripperCapacity(N)) ) then insert( gripperCapacity(N) ).
-		
 		% Insert the wanted sequence of block colors in the beliefs. Necessary to deliver in order later.
 		if bel( percept(sequence(Colors)) ) then insert( sequence(Colors) ).
 		
@@ -43,16 +39,27 @@ init module {
 		% The goTo action makes the agent move to a place (location) in the BW4T environment.
 		% As long as the agent has not arrived at the place it is going to, it will be in "traveling" mode.
 		goTo(Location) {
-            pre { not(state(traveling)) }
+            pre { place(Location), not(state(traveling))) } % , not(state(traveling) ??
 			post { true }
 		}
 
 		% Exercise 2.3a: insert a specification for the goToBlock(Block) action.
-
-		% Exercise 2.3b: insert a specification for the pickUp action.
-
-		% Exercise 2.3c: insert a specification for the putDown action.
+		goToBlock(Block) {
+			pre { percept(color(Block, _)) }
+			post { true }	
+		}
 		
+		% Exercise 2.3b: insert a specification for the pickUp action.
+		pickUp {
+			pre { atBlock(Block), not(holding(_)) }
+			post { not(atBlock(Block)) }	
+		}
+		
+		% Exercise 2.3c: insert a specification for the putDown action.
+		putDown {
+			pre { holding(Block) }
+			post { not(holding(Block)) }	
+		}
 	}
 }
 
