@@ -52,7 +52,7 @@ init module {
 		% Exercise 2.3b: insert a specification for the pickUp action.
 		pickUp {
 			pre { atBlock(Block), not(holding(_)) }
-			post { not(atBlock(Block)) }	
+			post { not(atBlock(Block), holding(Block) }	
 		}
 		
 		% Exercise 2.3c: insert a specification for the putDown action.
