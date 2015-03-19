@@ -65,9 +65,10 @@ init module {
 
 main module [exit=nogoals] {
 	program {
-		if a-goal( in(Place) ) then goTo(Place).
+		% if a-goal( in(Place) ) then goTo(Place).
 
 		% Exercise 2.5a: insert code for action rules that allows an agent to systematically search for blocks.
+		if bel( room(Room), not(visited(Room)) ) then goTo(Room).
 
 		% Exercise 2.6a: insert code for action rules that makes the agent deliver a block when it 
 		%   knows about a block that can be delivered.
@@ -109,6 +110,7 @@ event module {
 		
 		
 		% Exercise 2.5b: insert code for goal management that allows an agent to systematically search for blocks. (if needed)
+		if bel( percept(not(in(Room))) ) then insert( visited(Room) ).
 		
 		% Exercise 2.6b: insert code for goal management that makes the agent deliver a block when it 
 		%   knows about a block that can be delivered. (if needed)
