@@ -45,7 +45,7 @@ init module {
 
 		% Exercise 2.3a: insert a specification for the goToBlock(Block) action.
 		goToBlock(Block) {
-			pre { percept(color(Block, _)) }
+			pre { percept(color(Block, _)), not(state(traveling))) }
 			post { true }	
 		}
 		
@@ -64,20 +64,32 @@ init module {
 }
 
 main module [exit=nogoals] {
-	program {
-		% if a-goal( in(Place) ) then goTo(Place).
-
+	program [order=linear] {
 		% Exercise 2.5a: insert code for action rules that allows an agent to systematically search for blocks.
-		if bel( room(Room), not(visited(Room)) ) then goTo(Room).
+		% if bel( room(Room), not(visited(Room)) ) then goTo(Room).
+		
+		
+		% if bel( in(Room), block(Block, Room) ) then goToBlock(Block).
 
 		% Exercise 2.6a: insert code for action rules that makes the agent deliver a block when it 
 		%   knows about a block that can be delivered.
 		
+		if a-goal( in('DropZone') ), bel( holding(_) ) then goTo('DropZone').
+		if bel( in('DropZone'), holding(_) ) then putDown.
+		
+		if a-goal( atBlock(Block) ) then goToBlock(Block).
+		
+		if a-goal( holding(Block) ), bel( block(Block, Room), in(Room), atBlock(Block) ) then pickUp + delete( block(Block, Room) ) + adopt( in('DropZone') ).
+		if a-goal( holding(Block) ), bel( block(Block, Room), in(Room) ) then adopt ( atBlock(Block) ).
+		if a-goal( holding(Block) ), bel( block(Block, Room), not(in(Room)) ) then adopt( in(Room) ).
+
+		
+		if a-goal( in(Place) ) then goTo(Place).
 	}
 }
 
 event module {
-	program {
+	program [order=linearall] {
 	    % Update the agent's state of movement.
 		forall bel( state(State), percept(state(NewState)) ) do delete( state(State) ) + insert( state(NewState) ).
 		
@@ -114,6 +126,10 @@ event module {
 		
 		% Exercise 2.6b: insert code for goal management that makes the agent deliver a block when it 
 		%   knows about a block that can be delivered. (if needed)
+		forall bel( in(Room), percept(color(Block, _)) ) do insert( block(Block, Room) ).
 		
+		if not(goal( holding(_) )), bel( not(holding(_)), nextColorInSeq(Color), color(Block, Color) ) then adopt( holding(Block) ).
+		
+		forall goal(in(Room)), bel( sequenceIndex(N), sequence(M), length(M, N) ) do drop( in(Room) ).
 	}
 }
