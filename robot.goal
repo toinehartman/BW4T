@@ -75,16 +75,18 @@ main module [exit=nogoals] {
 		%   knows about a block that can be delivered.
 		
 		if a-goal( in('DropZone') ), bel( holding(_) ) then goTo('DropZone').
-		if bel( in('DropZone'), holding(_) ) then putDown.
+		if bel( in('DropZone'), holding(Block), color(Block, Color) ) then putDown + drop(holding(Block)) + delete(color(Block, Color)).
 		
 		if a-goal( atBlock(Block) ) then goToBlock(Block).
 		
 		if a-goal( holding(Block) ), bel( block(Block, Room), in(Room), atBlock(Block) ) then pickUp + delete( block(Block, Room) ) + adopt( in('DropZone') ).
-		if a-goal( holding(Block) ), bel( block(Block, Room), in(Room) ) then adopt ( atBlock(Block) ).
+		if a-goal( holding(Block) ), bel( block(Block, Room), in(Room), not(atBlock(Block)) ) then adopt ( atBlock(Block) ).
 		if a-goal( holding(Block) ), bel( block(Block, Room), not(in(Room)) ) then adopt( in(Room) ).
-
 		
-		if a-goal( in(Place) ) then goTo(Place).
+		if not(goal( holding(_) )), bel( not(holding(_)), nextColorInSeq(Color), color(Block, Color) ) then adopt( holding(Block) ).
+		
+		if a-goal( in(Room) ), bel( visited(Room) ) then goTo(Room).
+		if a-goal( in(Room) ) then goTo(Room).
 	}
 }
 
@@ -127,8 +129,6 @@ event module {
 		% Exercise 2.6b: insert code for goal management that makes the agent deliver a block when it 
 		%   knows about a block that can be delivered. (if needed)
 		forall bel( in(Room), percept(color(Block, _)) ) do insert( block(Block, Room) ).
-		
-		if not(goal( holding(_) )), bel( not(holding(_)), nextColorInSeq(Color), color(Block, Color) ) then adopt( holding(Block) ).
 		
 		forall goal(in(Room)), bel( sequenceIndex(N), sequence(M), length(M, N) ) do drop( in(Room) ).
 	}
