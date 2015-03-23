@@ -6,12 +6,22 @@ masTest {
 		test {
 			evaluate {
 				% Example: an agent should not drop a block outside a room.
+				% The agent should never put something down when he is not in any room.
 				never do(putDown), bel(not(in(_))).
 				
 				% Assignment 3.1: insert test conditions for the mandatory requirements.
+				
+				% The agent should never pick up a block that is not needed next.
 				never do(pickUp), bel(atBlock(Block), color(Block, Color), nextColorInSeq(Color)).
+				
+				% An agent that is not holding a block that is needed next should never enter the DropZone.
+				% It can not happen that the agent is in the Dropzone, holding a block with the wrong color for the sequence.
 				never bel(in('DropZone'), holding(Block), color(Block, Color), not(nextColorInSeq(Color))).
+				
+				% An agent should not leave the DropZone whilst holding a block.
+				% It should never happen that the agent is not in the DropZone anymore but is still holding something (presumably a block).
 				never bel(percept(not(in('DropZone'))), holding(_)).
+				
 				% Assignment 3.2: insert any additional conditions for furhter requirements. 
 				
 			} in do main until bel(sequence(Colors),length(Colors,L),sequenceIndex(L)). % delivered all blocks.
