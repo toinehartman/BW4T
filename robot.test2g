@@ -9,7 +9,9 @@ masTest {
 				never do(putDown), bel(not(in(_))).
 				
 				% Assignment 3.1: insert test conditions for the mandatory requirements.
-				
+				never do(pickUp), bel(atBlock(Block), color(Block, Color), nextColorInSeq(Color)).
+				never bel(in('DropZone'), holding(Block), color(Block, Color), not(nextColorInSeq(Color))).
+				never bel(percept(not(in('DropZone'))), holding(_)).
 				% Assignment 3.2: insert any additional conditions for furhter requirements. 
 				
 			} in do main until bel(sequence(Colors),length(Colors,L),sequenceIndex(L)). % delivered all blocks.
