@@ -107,7 +107,7 @@ main module [exit=nogoals] {
 		if not(goal( holding(_) )), bel( not(holding(_)), nextColorInSeq(Color), color(Block, Color) ) then adopt( holding(Block) ).
 		
 		% The agent should go to all the rooms that he has not visited yet.
-		% if a-goal( in(Room) ), bel( visited(Room) ) then goTo(Room).
+		if a-goal( in(Room) ), bel( visited(Room) ) then goTo(Room).
 		
 		% The agent should visit all of the rooms (to have a chance to find the required blocks).
 		if a-goal( in(Room) ) then goTo(Room).
