@@ -96,6 +96,10 @@ main module [exit=nogoals] {
 		% The agent also deletes the information about the block being in the room and adopts the new goal in('DropZone').
 		if a-goal( holding(Block) ), bel( block(Block, Room), in(Room), atBlock(Block) ) then pickUp + delete( block(Block, Room) ) + adopt( in('DropZone') ).
 		
+		% Exercise 4: 1.2
+		% If the agent wants to get a block, but the block is no longer in the room (because an other agent has already gotten it), the agent drops his goal.
+		if a-goal( holding(Block)), bel( block(Block, Room), in(Room), not (percept(color(Block, _))) ) then drop(holding(Block)).
+		
 		% If the agent has the goal holding(Block) and he is not yet at the block in the room, he should adopt the goal atBlock(Block).
 		if a-goal( holding(Block) ), bel( block(Block, Room), in(Room), not(atBlock(Block)) ) then adopt ( atBlock(Block) ).
 		
@@ -111,6 +115,7 @@ main module [exit=nogoals] {
 		
 		% The agent should visit all of the rooms (to have a chance to find the required blocks).
 		if a-goal( in(Room) ) then goTo(Room).
+	
 	}
 }
 
@@ -146,7 +151,6 @@ event module {
 		% Remember the color of newly seen blocks
 		forall bel( percept(color(Block, Color)) ) do insert( color(Block, Color) ).
 		
-		
 		% Exercise 2.5b: insert code for goal management that allows an agent to systematically search for blocks. (if needed)
 		% If the agent is not in a Room anymore, he inserts that he already visited that Room.
 		if bel( percept(not(in(Room))) ) then insert( visited(Room) ).
@@ -158,5 +162,7 @@ event module {
 		
 		% When the agent has collected all of the required blocks, he drops the goal in(Room) so that the agent can terminate itself.
 		forall goal(in(Room)), bel( sequenceIndex(N), sequence(M), length(M, N) ) do drop( in(Room) ).
+		
+		% Exercise 4: 1.2
 	}
 }
