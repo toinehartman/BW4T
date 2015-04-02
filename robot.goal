@@ -163,9 +163,12 @@ event module {
 		% When the agent has collected all of the required blocks, he drops the goal in(Room) so that the agent can terminate itself.
 		forall goal(in(Room)), bel( sequenceIndex(N), sequence(M), length(M, N) ) do drop( in(Room) ).
 		
-		if bel( in(Room)) then allother.send( in(Room)).
-		if bel( received(_, in(Room))) then drop(in(Room)).	
+		% Exercise 4: Messages
+		if bel(in(Room)) then allother.send(in(Room)).
+		if bel(received(_, in(Room))) then drop(in(Room)).	
 	
-		if bel( in(Room), block(Block,Room), color(Block, Color)) then allother.send(block(Block, Room)) + allother.send(color(Block, Color)).
+		if bel(in(Room), block(Block,Room), color(Block, Color)) then allother.send(block(Block, Room)) + allother.send(color(Block, Color)).
+		if bel(received(_, block(Block, Room))) then insert(block(Block, Room)).	
+		if bel(received(_, color(Block, Color))) then insert(color(Block, Color)).	
 	}
 }
