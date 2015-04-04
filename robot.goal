@@ -3,11 +3,8 @@ init module {
 		% A room is a place with exactly one neighbour, i.e., there is only one way to get to and from that place.
 		room(PlaceID) :- zone(_,PlaceID,_,_,Neighbours), length(Neighbours,1).
 		
-		% Exercise 2.2: insert a definition of the predicate "nextColorInSeq(Color)".
 		% The next Color in the sequence is the color on the nth place of the colors sequenceIndex.
 		nextColorInSeq(Color) :- sequenceIndex(Index), sequence(Colors), nth0(Index, Colors, Color).
-		
-		% Exercise 2.5 + 2.6: (optional) if needed, insert additional knowledge here.
 		
 	}
 	program {
@@ -19,9 +16,6 @@ init module {
 		
 		% Adopt initial goals.
 		forall bel( room(Place), Place \== 'DropZone' ) do adopt( in(Place) ).
-
-		% Exercise 2.1a: insert rules for processing percepts that are sent only at the beginning of a session, 
-		%  and/or need to be initialized.
 		
 		%% Send-once percepts
 		
@@ -42,7 +36,6 @@ init module {
 		if bel( percept(at(Place)) ) then insert( at(Place) ).
 	}	
 	actionspec {
-		% The goTo action makes the agent move to a place (location) in the BW4T environment.
 		% As long as the agent has not arrived at the place it is going to, it will be in "traveling" mode.
 		% Before the action the agent is at a location and not traveling. After the action the agent is at the location (or room).
 		goTo(Location) {
@@ -50,14 +43,13 @@ init module {
 			post { true }
 		}
 
-		% Exercise 2.3a: insert a specification for the goToBlock(Block) action.
-		% Before the action the agent percepts a block and is not traveling. After the action the agent is at the block.
+		% Before the action the agent percepts a block and is not traveling.
+		% After the action the agent is at the block.
 		goToBlock(Block) {
 			pre { in(Room), block(Block, Room), not(state(traveling))) }
 			post { true }
 		}
 		
-		% Exercise 2.3b: insert a specification for the pickUp action.
 		% Before the action the agent is at a block and not holding anything.
 		% After the action the agent is not at the block anymore but holding the block.
 		pickUp {
@@ -65,7 +57,6 @@ init module {
 			post { not(atBlock(Block)), holding(Block) }	
 		}
 		
-		% Exercise 2.3c: insert a specification for the putDown action.
 		% Before the action the agent is holding a block
 		% After the action the agent is not holding the block anymore.
 		putDown {
@@ -77,13 +68,6 @@ init module {
 
 main module [exit=nogoals] {
 	program [order=linear] {
-		% Exercise 2.5a: insert code for action rules that allows an agent to systematically search for blocks.
-		% if bel( room(Room), not(visited(Room)) ) then goTo(Room).
-		% if bel( in(Room), block(Block, Room) ) then goToBlock(Block).
-
-		% Exercise 2.6a: insert code for action rules that makes the agent deliver a block when it 
-		%   knows about a block that can be delivered.
-		
 		% If the agent has the goal in('DropZone') and he is holding a block, he should go to the DropZone.
 		if a-goal( in('DropZone') ), bel( holding(_) ) then goTo('DropZone').
 		
@@ -124,8 +108,6 @@ event module {
 		% Record when we are entering or leaving a room.
 		forall bel( percept(in(Room)) ) do insert( in(Room) ).
 		forall bel( percept(not(in(Room))) ) do delete( in(Room) ).
-
-		% Exercise 2.1b: insert rules for handling percepts other than "sendonce" percepts.
 		
 		% Record in which area we are
 		if bel( at(Place), percept(at(NewPlace)) ) then delete( at(Place) ) + insert( at(NewPlace) ).
@@ -148,13 +130,9 @@ event module {
 		% Remember the color of newly seen blocks
 		forall bel( percept(color(Block, Color)) ) do insert( color(Block, Color) ).
 		
-		
-		% Exercise 2.5b: insert code for goal management that allows an agent to systematically search for blocks. (if needed)
 		% If the agent is not in a Room anymore, he inserts that he already visited that Room.
 		if bel( percept(not(in(Room))) ) then insert( visited(Room) ).
 		
-		% Exercise 2.6b: insert code for goal management that makes the agent deliver a block when it 
-		%   knows about a block that can be delivered. (if needed)
 		% When an agent is in a room, the agent percepts the colors of the blocks and inserts the corresponding blocks and room in his believes.
 		forall bel( in(Room), percept(color(Block, _)) ) do insert( block(Block, Room) ).
 		
