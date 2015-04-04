@@ -1,7 +1,7 @@
 environment{
 	env = "bw4t-client-3.8.0.jar".
 	init = [ clientip ="localhost", clientport="2000", serverip = "localhost", serverport = "8000",
-			 agentcount = "3", humancount = "0", launchgui = "true", goal = "true"].
+			 agentcount = "1", humancount = "0", launchgui = "true", goal = "true"].
 }
 
 agentfiles{

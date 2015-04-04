@@ -18,7 +18,7 @@ init module {
 		if bel( percept(state(State)) ) then insert( state(State) ).
 		
 		% Adopt initial goals.
-		forall bel( room(Place) ) do adopt( in(Place) ).
+		forall bel( room(Place), Place \== 'DropZone' ) do adopt( in(Place) ).
 
 		% Exercise 2.1a: insert rules for processing percepts that are sent only at the beginning of a session, 
 		%  and/or need to be initialized.
@@ -38,6 +38,8 @@ init module {
 		% Initialize sequenceIndex a.k.a. progress of collecting blocks
 		% The agent inserts the sequenceIndex, perceived from the environment.
 		if bel( percept(sequenceIndex(N)) ) then insert( sequenceIndex(N) ).
+		
+		if bel( percept(at(Place)) ) then insert( at(Place) ).
 	}	
 	actionspec {
 		% The goTo action makes the agent move to a place (location) in the BW4T environment.
@@ -51,8 +53,8 @@ init module {
 		% Exercise 2.3a: insert a specification for the goToBlock(Block) action.
 		% Before the action the agent percepts a block and is not traveling. After the action the agent is at the block.
 		goToBlock(Block) {
-			pre { percept(color(Block, _)), not(state(traveling))) }
-			post { true }	
+			pre { in(Room), block(Block, Room), not(state(traveling))) }
+			post { true }
 		}
 		
 		% Exercise 2.3b: insert a specification for the pickUp action.
@@ -120,13 +122,13 @@ event module {
 		forall bel( state(State), percept(state(NewState)) ) do delete( state(State) ) + insert( state(NewState) ).
 		
 		% Record when we are entering or leaving a room.
-		forall bel( percept(in(Place)) ) do insert( in(Place) ).
-		forall bel( percept(not(in(Place))) ) do delete( in(Place) ).
+		forall bel( percept(in(Room)) ) do insert( in(Room) ).
+		forall bel( percept(not(in(Room))) ) do delete( in(Room) ).
 
 		% Exercise 2.1b: insert rules for handling percepts other than "sendonce" percepts.
 		
 		% Record in which area we are
-		if bel( at(Place), percept(at(NewPlace)) ) then delete( at(Place) ) + insert( at(Place) ).
+		if bel( at(Place), percept(at(NewPlace)) ) then delete( at(Place) ) + insert( at(NewPlace) ).
 		
 		% Track the progress of collecting blocks (i.e. the index of the next block to collect in the list)
 		if bel( sequenceIndex(M), percept(sequenceIndex(N)) ) then delete( sequenceIndex(M) ) + insert( sequenceIndex(N) ).
