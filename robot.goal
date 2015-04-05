@@ -78,6 +78,11 @@ main module [exit=nogoals] {
 		% The agent also deletes the information about the block being in the room and adopts the new goal in('DropZone').
 		if a-goal( holding(Block) ), bel( block(Block, Room), in(Room), atBlock(Block) ) then pickUp.
 		
+		% Exercise 4: 1.2
+		% If the agent wants to get a block, but the block is no longer in the room (because an other agent has already gotten it), the agent drops his goal.
+		if a-goal( holding(Block)), bel( block(Block, Room), in(Room), not (percept(color(Block, _))) ) then drop(holding(Block)).
+		
+		% If the agent has the goal holding(Block) and he is not yet at the block in the room, he should adopt the goal atBlock(Block).
 		if a-goal( holding(Block) ), bel( block(Block, Room), in(Room), not(atBlock(Block)) ) then goToBlock(Block).
 		
 		if a-goal( holding(Block) ), bel( block(Block, Room), not(in(Room)) ) then goTo(Room).
@@ -139,5 +144,13 @@ event module {
 		
 		% When the agent has collected all of the required blocks, he drops the goal in(Room) so that the agent can terminate itself.
 		forall a-goal( in(Room) ), bel( sequenceIndex(N), sequence(M), length(M, N) ) do drop( in(Room) ).
+		
+		% Exercise 4: Messages
+		if bel(in(Room)) then allother.send(in(Room)).
+		if bel(received(_, in(Room))) then drop(in(Room)).	
+	
+		if bel(in(Room), block(Block,Room), color(Block, Color)) then allother.send(block(Block, Room)) + allother.send(color(Block, Color)).
+		if bel(received(_, block(Block, Room))) then insert(block(Block, Room)).	
+		if bel(received(_, color(Block, Color))) then insert(color(Block, Color)).
 	}
 }

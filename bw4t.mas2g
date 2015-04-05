@@ -6,6 +6,9 @@ environment{
 
 agentfiles{
 	"robot.goal" [name = robot].
+	"robot.goal" [name = robot2].
+	"robot.goal" [name = robot3].
+	
 }
 
 launchpolicy{
