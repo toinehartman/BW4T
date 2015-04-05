@@ -1,16 +1,14 @@
 environment{
 	env = "bw4t-client-3.8.0.jar".
 	init = [ clientip ="localhost", clientport="2000", serverip = "localhost", serverport = "8000",
-			 agentcount = "1", humancount = "0", launchgui = "true", goal = "true"].
+			 agentcount = "3", humancount = "0", launchgui = "true", goal = "true"].
 }
 
 agentfiles{
 	"robot.goal" [name = robot].
-	"robot.goal" [name = robot2].
-	"robot.goal" [name = robot3].
 	
 }
 
 launchpolicy{
-	when [max=1]@env do launch robot.
+	when [max=3]@env do launch robot.
 }
