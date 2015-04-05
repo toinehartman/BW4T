@@ -3,12 +3,8 @@ init module {
 		% A room is a place with exactly one neighbour, i.e., there is only one way to get to and from that place.
 		room(PlaceID) :- zone(_,PlaceID,_,_,Neighbours), length(Neighbours,1).
 		
-		% Exercise 2.2: insert a definition of the predicate "nextColorInSeq(Color)".
 		% The next Color in the sequence is the color on the nth place of the colors sequenceIndex.
 		nextColorInSeq(Color) :- sequenceIndex(Index), sequence(Colors), nth0(Index, Colors, Color).
-		
-		% Exercise 2.5 + 2.6: (optional) if needed, insert additional knowledge here.
-		
 	}
 	program {
 		% Store map information, i.e., navigation points in the agent's belief base.
@@ -18,13 +14,9 @@ init module {
 		if bel( percept(state(State)) ) then insert( state(State) ).
 		
 		% Adopt initial goals.
-		forall bel( room(Place) ) do adopt( in(Place) ).
-
-		% Exercise 2.1a: insert rules for processing percepts that are sent only at the beginning of a session, 
-		%  and/or need to be initialized.
+		forall bel( room(Place), Place \== 'DropZone' ) do adopt( in(Place) ).
 		
 		%% Send-once percepts
-		
 		% Insert the wanted sequence of block colors in the beliefs. Necessary to deliver in order later.
 		% The agent should put his perceptions about the color sequence in his believe base.
 		if bel( percept(sequence(Colors)) ) then insert( sequence(Colors) ).
@@ -34,7 +26,6 @@ init module {
 		forall bel( percept(place(Place)) ) do insert( place(Place) ).
 		
 		%% Initialization
-		
 		% Initialize sequenceIndex a.k.a. progress of collecting blocks
 		% The agent inserts the sequenceIndex, perceived from the environment.
 		if bel( percept(sequenceIndex(N)) ) then insert( sequenceIndex(N) ).
@@ -74,46 +65,30 @@ init module {
 }
 
 main module [exit=nogoals] {
-	program [order=linear] {
-		% Exercise 2.5a: insert code for action rules that allows an agent to systematically search for blocks.
-		% if bel( room(Room), not(visited(Room)) ) then goTo(Room).
-		% if bel( in(Room), block(Block, Room) ) then goToBlock(Block).
-
-		% Exercise 2.6a: insert code for action rules that makes the agent deliver a block when it 
-		%   knows about a block that can be delivered.
+	program {
+		if bel( in('DropZone'), holding(Block), color(Block, Color), block(Block, Room) ) then putDown.
 		
 		% If the agent has the goal in('DropZone') and he is holding a block, he should go to the DropZone.
-		if a-goal( in('DropZone') ), bel( holding(_) ) then goTo('DropZone').
-		
-		% If the agent is in the DropZone and he is holding a block, he should put it down and drop his current goal to hold the block.
-		% Also the information about the delivered block will be deleted because the block is no longer in any room.
-		if bel( in('DropZone'), holding(Block), color(Block, Color) ) then putDown + drop(holding(Block)) + delete(color(Block, Color)).
+		if a-goal( in('DropZone') ) then goTo('DropZone').
 		
 		% If the agent has the goal atBlock(Block), then he should go to this block.
 		if a-goal( atBlock(Block) ) then goToBlock(Block).
 		
 		% If the agent has the goal holding(Block) and he is at the block in the room, he should pick the block up.
 		% The agent also deletes the information about the block being in the room and adopts the new goal in('DropZone').
-		if a-goal( holding(Block) ), bel( block(Block, Room), in(Room), atBlock(Block) ) then pickUp + delete( block(Block, Room) ) + adopt( in('DropZone') ).
+		if a-goal( holding(Block) ), bel( block(Block, Room), in(Room), atBlock(Block) ) then pickUp.
 		
 		% Exercise 4: 1.2
 		% If the agent wants to get a block, but the block is no longer in the room (because an other agent has already gotten it), the agent drops his goal.
 		if a-goal( holding(Block)), bel( block(Block, Room), in(Room), not (percept(color(Block, _))) ) then drop(holding(Block)).
 		
 		% If the agent has the goal holding(Block) and he is not yet at the block in the room, he should adopt the goal atBlock(Block).
-		if a-goal( holding(Block) ), bel( block(Block, Room), in(Room), not(atBlock(Block)) ) then adopt ( atBlock(Block) ).
+		if a-goal( holding(Block) ), bel( block(Block, Room), in(Room), not(atBlock(Block)) ) then goToBlock(Block).
 		
-		% If the agent has the goal holding(Block) and he is currently not in the right room, he should adopt the goal in(Room).
-		if a-goal( holding(Block) ), bel( block(Block, Room), not(in(Room)) ) then adopt( in(Room) ).
-		
-		% If the agent does not have the goal holding(_) already and he is currently not holding anything,
-		% 	he adopts the goal holding(Block) for the Block that has the next Color in the sequence.
-		if not(goal( holding(_) )), bel( not(holding(_)), nextColorInSeq(Color), color(Block, Color) ) then adopt( holding(Block) ).
-		
-		% The agent should go to all the rooms that he has not visited yet.
-		if a-goal( in(Room) ), bel( visited(Room) ) then goTo(Room).
+		if a-goal( holding(Block) ), bel( block(Block, Room), not(in(Room)) ) then goTo(Room).
 		
 		% The agent should visit all of the rooms (to have a chance to find the required blocks).
+		if a-goal( in(Room) ), bel( visited(Room) ) then goTo(Room).
 		if a-goal( in(Room) ) then goTo(Room).
 	}
 }
@@ -126,14 +101,12 @@ event module {
 		% Record when we are entering or leaving a room.
 		forall bel( percept(in(Place)) ) do insert( in(Place) ).
 		forall bel( percept(not(in(Place))) ) do delete( in(Place) ).
-
-		% Exercise 2.1b: insert rules for handling percepts other than "sendonce" percepts.
 		
 		% Record in which area we are
 		if bel( at(Place), percept(at(NewPlace)) ) then delete( at(Place) ) + insert( at(Place) ).
 		
 		% Track the progress of collecting blocks (i.e. the index of the next block to collect in the list)
-		if bel( sequenceIndex(M), percept(sequenceIndex(N)) ) then delete( sequenceIndex(M) ) + insert( sequenceIndex(N) ).
+		% if bel( sequenceIndex(M), percept(sequenceIndex(N)) ) then delete( sequenceIndex(M) ) + insert( sequenceIndex(N) ).
 		
 		% Track which block the gripper is holding
 		if bel( percept(holding(Block)) ) then insert( holding(Block) ).
@@ -150,18 +123,27 @@ event module {
 		% Remember the color of newly seen blocks
 		forall bel( percept(color(Block, Color)) ) do insert( color(Block, Color) ).
 		
-		
-		% Exercise 2.5b: insert code for goal management that allows an agent to systematically search for blocks. (if needed)
 		% If the agent is not in a Room anymore, he inserts that he already visited that Room.
 		if bel( percept(not(in(Room))) ) then insert( visited(Room) ).
 		
-		% Exercise 2.6b: insert code for goal management that makes the agent deliver a block when it 
-		%   knows about a block that can be delivered. (if needed)
 		% When an agent is in a room, the agent percepts the colors of the blocks and inserts the corresponding blocks and room in his believes.
 		forall bel( in(Room), percept(color(Block, _)) ) do insert( block(Block, Room) ).
 		
+		% If the agent is in the DropZone and he is holding a block, he should put it down and drop his current goal to hold the block.
+		% Also the information about the delivered block will be deleted because the block is no longer in any room.
+		if bel( percept(not(holding(Block))), color(Block, Color), block(Block, Room) ) then delete( color(Block, Color) ) + delete( block(Block, Room) ).
+		
+		if bel( holding(Block) ) then adopt( in('DropZone') ).
+		
+		% Track the progress of collecting blocks (i.e. the index of the next block to collect in the list)
+		if bel( sequenceIndex(M), percept(sequenceIndex(N)) ) then delete( sequenceIndex(M)) + insert( sequenceIndex(N) ).
+		
+		% If the agent does not have the goal holding(_) already and he is currently not holding anything,
+		% 	he adopts the goal holding(Block) for the Block that has the next Color in the sequence.
+		if not(goal( holding(_)) ), bel( not(holding(_)), nextColorInSeq(Color), color(Block, Color), block(Block, Room) ) then adopt( holding(Block) ) + adopt( in(Room) ) + adopt( atBlock(Block) ).
+		
 		% When the agent has collected all of the required blocks, he drops the goal in(Room) so that the agent can terminate itself.
-		forall goal(in(Room)), bel( sequenceIndex(N), sequence(M), length(M, N) ) do drop( in(Room) ).
+		forall a-goal( in(Room) ), bel( sequenceIndex(N), sequence(M), length(M, N) ) do drop( in(Room) ).
 		
 		% Exercise 4: Messages
 		if bel(in(Room)) then allother.send(in(Room)).
@@ -169,6 +151,6 @@ event module {
 	
 		if bel(in(Room), block(Block,Room), color(Block, Color)) then allother.send(block(Block, Room)) + allother.send(color(Block, Color)).
 		if bel(received(_, block(Block, Room))) then insert(block(Block, Room)).	
-		if bel(received(_, color(Block, Color))) then insert(color(Block, Color)).	
+		if bel(received(_, color(Block, Color))) then insert(color(Block, Color)).
 	}
 }
