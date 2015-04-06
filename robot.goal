@@ -66,7 +66,8 @@ init module {
 
 main module [exit=nogoals] {
 	program {
-		if bel( in('DropZone'), holding(Block), color(Block, Color), block(Block, Room) ) then putDown.
+		if bel( in('DropZone'), holding(Block), color(Block, Color), block(Block, Room), nextColorInSeq(Color) ) then putDown.
+		if bel( in('DropZone'), holding(Block), color(Block, Color), block(Block, Room), not(nextColorInSeq(Color)) ) then goTo('RoomC1').
 		
 		% If the agent has the goal in('DropZone') and he is holding a block, he should go to the DropZone.
 		if a-goal( in('DropZone') ) then goTo('DropZone').
@@ -74,13 +75,13 @@ main module [exit=nogoals] {
 		% If the agent has the goal atBlock(Block), then he should go to this block.
 		if a-goal( atBlock(Block) ) then goToBlock(Block).
 		
+		% Exercise 4: 1.2
+		% If the agent wants to get a block, but the block is no longer in the room (because an other agent has already gotten it), the agent drops his goal.
+		if a-goal( holding(Block)), bel( block(Block, Room), color(Block, Color), in(Room), not (percept(color(Block, _))) ) then drop(holding(Block)) + delete(block(Block, Room)) + delete(color(Block, Color)).
+		
 		% If the agent has the goal holding(Block) and he is at the block in the room, he should pick the block up.
 		% The agent also deletes the information about the block being in the room and adopts the new goal in('DropZone').
 		if a-goal( holding(Block) ), bel( block(Block, Room), in(Room), atBlock(Block) ) then pickUp.
-		
-		% Exercise 4: 1.2
-		% If the agent wants to get a block, but the block is no longer in the room (because an other agent has already gotten it), the agent drops his goal.
-		if a-goal( holding(Block)), bel( block(Block, Room), in(Room), not (percept(color(Block, _))) ) then drop(holding(Block)).
 		
 		% If the agent has the goal holding(Block) and he is not yet at the block in the room, he should adopt the goal atBlock(Block).
 		if a-goal( holding(Block) ), bel( block(Block, Room), in(Room), not(atBlock(Block)) ) then goToBlock(Block).
