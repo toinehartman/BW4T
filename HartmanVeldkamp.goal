@@ -149,9 +149,9 @@ event module {
 		if not(goal( holding(_)) ), bel( not(holding(_)), nextColorInSeq(Color), color(Block, Color), block(Block, Room) ) then adopt( holding(Block) ) + adopt( in(Room) ) + adopt( atBlock(Block) ).
 		
 		% When the agent has collected all of the required blocks, he drops the goal in(Room) so that the agent can terminate itself.
-		forall a-goal( in(Room) ), bel( sequenceIndex(N), sequence(M), length(M, N) ) do drop( in(Room) ).
-		forall a-goal( holding(Block) ), bel( sequenceIndex(N), sequence(M), length(M, N) ) do drop( holding(Block) ).
-		forall a-goal( atBlock(Block) ), bel( sequenceIndex(N), sequence(M), length(M, N) ) do drop( atBlock(Block) ).
+		forall goal( in(Room) ), bel( sequenceIndex(N), sequence(M), length(M, N) ) do drop( in(Room) ).
+		forall goal( holding(Block) ), bel( sequenceIndex(N), sequence(M), length(M, N) ) do drop( holding(Block) ).
+		forall goal( atBlock(Block) ), bel( sequenceIndex(N), sequence(M), length(M, N) ) do drop( atBlock(Block) ).
 		
 		% Exercise 4: Messages
 		%if bel(in(Room)) then allother.send(in(Room)).

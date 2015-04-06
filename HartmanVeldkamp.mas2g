@@ -5,7 +5,7 @@ environment{
 }
 
 agentfiles{
-	"robot.goal" [name = robot].
+	"HartmanVeldkamp.goal" [name = robot].
 	
 }
 
