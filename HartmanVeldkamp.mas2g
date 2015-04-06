@@ -1,3 +1,6 @@
+% Toine Hartman 4305655
+% Lisette Veldkamp
+
 environment{
 	env = "bw4t-client-3.8.0.jar".
 	init = [ clientip ="localhost", clientport="2000", serverip = "localhost", serverport = "8000",
