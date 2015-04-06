@@ -66,8 +66,9 @@ init module {
 
 main module [exit=nogoals] {
 	program {
-		if bel( in('DropZone'), holding(Block), color(Block, Color), block(Block, Room), nextColorInSeq(Color) ) then putDown.
-		if bel( in('DropZone'), holding(Block), color(Block, Color), block(Block, Room), not(nextColorInSeq(Color)) ) then goTo('RoomC1').
+		if bel( in('RoomC1'), holding(Block), color(Block, Color), not(nextColorInSeq(Color)) ) then putDown + drop( in('DropZone') ).
+		if bel( in('DropZone'), holding(Block), color(Block, Color), nextColorInSeq(Color) ) then putDown.
+		if bel( in('DropZone'), holding(Block), color(Block, Color), not(nextColorInSeq(Color)) ) then goTo('RoomC1').
 		
 		% If the agent has the goal in('DropZone') and he is holding a block, he should go to the DropZone.
 		if a-goal( in('DropZone') ) then goTo('DropZone').
@@ -77,16 +78,16 @@ main module [exit=nogoals] {
 		
 		% Exercise 4: 1.2
 		% If the agent wants to get a block, but the block is no longer in the room (because an other agent has already gotten it), the agent drops his goal.
-		if a-goal( holding(Block)), bel( block(Block, Room), color(Block, Color), in(Room), not (percept(color(Block, _))) ) then drop(holding(Block)) + delete(block(Block, Room)) + delete(color(Block, Color)).
+		if a-goal( holding(Block)), bel( block(Block, Room), color(Block, Color), in(Room), not(percept(color(Block, _))) ) then drop(holding(Block)) + delete(block(Block, Room)) + delete(color(Block, Color)).
 		
-		% If the agent has the goal holding(Block) and he is at the block in the room, he should pick the block up.
-		% The agent also deletes the information about the block being in the room and adopts the new goal in('DropZone').
-		if a-goal( holding(Block) ), bel( block(Block, Room), in(Room), atBlock(Block) ) then pickUp.
+		if a-goal( holding(Block) ), bel( block(Block, Room), not(in(Room)) ) then goTo(Room).
 		
 		% If the agent has the goal holding(Block) and he is not yet at the block in the room, he should adopt the goal atBlock(Block).
 		if a-goal( holding(Block) ), bel( block(Block, Room), in(Room), not(atBlock(Block)) ) then goToBlock(Block).
 		
-		if a-goal( holding(Block) ), bel( block(Block, Room), not(in(Room)) ) then goTo(Room).
+		% If the agent has the goal holding(Block) and he is at the block in the room, he should pick the block up.
+		% The agent also deletes the information about the block being in the room and adopts the new goal in('DropZone').
+		if a-goal( holding(Block) ), bel( block(Block, Room), in(Room), atBlock(Block)) then pickUp.
 		
 		% The agent should visit all of the rooms (to have a chance to find the required blocks).
 		if a-goal( in(Room) ), bel( visited(Room) ) then goTo(Room).
@@ -100,8 +101,8 @@ event module {
 		forall bel( state(State), percept(state(NewState)) ) do delete( state(State) ) + insert( state(NewState) ).
 		
 		% Record when we are entering or leaving a room.
-		forall bel( percept(in(Place)) ) do insert( in(Place) ).
-		forall bel( percept(not(in(Place))) ) do delete( in(Place) ).
+		forall bel( percept(in(Room)) ) do insert( in(Room) ) + allother.send( in(Room) ).
+		forall bel( percept(not(in(Room))) ) do delete( in(Room) ).
 		
 		% Record in which area we are
 		if bel( at(Place), percept(at(NewPlace)) ) then delete( at(Place) ) + insert( at(Place) ).
@@ -122,17 +123,21 @@ event module {
 		forall bel( percept(not(occupied(Room))) ) do delete( occupied(Room) ).
 		
 		% Remember the color of newly seen blocks
-		forall bel( percept(color(Block, Color)) ) do insert( color(Block, Color) ).
+		forall bel( percept(color(Block, Color)) ) do insert( color(Block, Color)) + allother.send(color(Block, Color)).
+		forall bel( received(Agent, not(color(Block, Color))) ) do delete( color(Block, Color) ) + delete( received(Agent, not(color(Block, Color))) ).
+		forall bel( received(Agent, color(Block, Color)) ) do insert( color(Block, Color) ) + delete( received(Agent, color(Block, Color)) ).
 		
 		% If the agent is not in a Room anymore, he inserts that he already visited that Room.
 		if bel( percept(not(in(Room))) ) then insert( visited(Room) ).
 		
 		% When an agent is in a room, the agent percepts the colors of the blocks and inserts the corresponding blocks and room in his believes.
-		forall bel( in(Room), percept(color(Block, _)) ) do insert( block(Block, Room) ).
+		forall bel( in(Room), percept(color(Block, _)) ) do insert( block(Block, Room) ) + allother.send( block(Block, Room) ).
+		forall bel( received(Agent, not(block(Block, Room))) ) do delete( block(Block, Room) ) + delete( received(Agent, not(block(Block, Room))) ).
+		forall bel( received(Agent, block(Block, Room)) ) do insert( block(Block, Room) ) + delete( received(Agent, block(Block, Room)) ).
 		
 		% If the agent is in the DropZone and he is holding a block, he should put it down and drop his current goal to hold the block.
 		% Also the information about the delivered block will be deleted because the block is no longer in any room.
-		if bel( percept(not(holding(Block))), color(Block, Color), block(Block, Room) ) then delete( color(Block, Color) ) + delete( block(Block, Room) ).
+		if bel( percept(not(holding(Block))), color(Block, Color), block(Block, Room) ) then delete( color(Block, Color) ) + delete( block(Block, Room) ) + allother.send(not(color(Block, Color))) + allother.send(not(block(Block, Room))).
 		
 		if bel( holding(Block) ) then adopt( in('DropZone') ).
 		
@@ -145,13 +150,15 @@ event module {
 		
 		% When the agent has collected all of the required blocks, he drops the goal in(Room) so that the agent can terminate itself.
 		forall a-goal( in(Room) ), bel( sequenceIndex(N), sequence(M), length(M, N) ) do drop( in(Room) ).
+		forall a-goal( holding(Block) ), bel( sequenceIndex(N), sequence(M), length(M, N) ) do drop( holding(Block) ).
+		forall a-goal( atBlock(Block) ), bel( sequenceIndex(N), sequence(M), length(M, N) ) do drop( atBlock(Block) ).
 		
 		% Exercise 4: Messages
-		if bel(in(Room)) then allother.send(in(Room)).
-		if bel(received(_, in(Room))) then drop(in(Room)).	
+		%if bel(in(Room)) then allother.send(in(Room)).
+		%if bel(received(_, in(Room))) then drop(in(Room)).	
 	
-		if bel(in(Room), block(Block,Room), color(Block, Color)) then allother.send(block(Block, Room)) + allother.send(color(Block, Color)).
-		if bel(received(_, block(Block, Room))) then insert(block(Block, Room)).	
-		if bel(received(_, color(Block, Color))) then insert(color(Block, Color)).
+		%if bel(in(Room), block(Block,Room), color(Block, Color)) then allother.send(block(Block, Room)) + allother.send(color(Block, Color)).
+		%if bel(received(_, block(Block, Room))) then insert(block(Block, Room)).	
+		%if bel(received(_, color(Block, Color))) then insert(color(Block, Color)).
 	}
 }
